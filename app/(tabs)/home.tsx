@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -69,6 +71,16 @@ export default function HomeScreen() {
           visible={showNotif} 
           onClose={() => setShowNotif(false)} 
         />
+
+        {Platform.OS === 'web' && (
+          <TouchableOpacity 
+            style={styles.downloadApkBtn}
+            activeOpacity={0.8}
+            onPress={() => Linking.openURL('/assets/NusantaraLearn.apk')}
+          >
+            <Text style={styles.downloadApkText}>📲 Unduh APK Android</Text>
+          </TouchableOpacity>
+        )}
 
         <View style={styles.searchWrap}>
           <SearchBar onSearch={setSearchQuery} />
@@ -244,6 +256,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4d4d',
     borderWidth: 1.5,
     borderColor: Colors.bg,
+  },
+  downloadApkBtn: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    backgroundColor: 'rgba(29,158,117,0.1)',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    paddingVertical: 12,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderStyle: 'dashed',
+  },
+  downloadApkText: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: 'Sora_700Bold',
   },
   sectionHeader: {
     paddingHorizontal: 20,
