@@ -320,41 +320,46 @@ export default function ProfileScreen() {
                               size: A4 landscape; 
                               margin: 0; 
                             }
-                            body * { visibility: hidden; }
-                            #printable-cert-${lessonId}, #printable-cert-${lessonId} * { 
-                              visibility: visible; 
-                              -webkit-print-color-adjust: exact !important; 
-                              print-color-adjust: exact !important; 
-                            }
-                            #printable-cert-${lessonId} { 
-                              position: fixed; 
-                              left: 0; 
-                              top: 0; 
-                              width: 297mm; 
-                              height: 210mm;
-                              margin: 0;
-                              padding: 0;
-                              border: none;
-                              box-shadow: none;
+                            html, body {
+                              height: 100%;
+                              margin: 0 !important;
+                              padding: 0 !important;
+                              overflow: hidden !important;
                               background-color: white !important;
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
                             }
-                            /* Ensure the CertificateCard inside fills the standardized space */
-                            #printable-cert-${lessonId} > div:first-child {
-                              width: 100% !important;
-                              height: 100% !important;
-                              border-radius: 0 !important;
+                            #root, #__next, [data-expo-container] { 
+                              display: none !important; 
+                            }
+                            .printable-cert-isolated {
+                              display: flex !important;
+                              position: fixed !important;
+                              top: 0 !important;
+                              left: 0 !important;
+                              width: 297mm !important;
+                              height: 210mm !important;
+                              z-index: 999999 !important;
+                              background-color: white !important;
+                              visibility: visible !important;
+                            }
+                            .printable-cert-isolated * {
+                              visibility: visible !important;
                             }
                             /* Hide the download button during print */
-                            #printable-cert-${lessonId} > :last-child { 
+                            .printable-cert-isolated > :last-child { 
                               display: none !important; 
                             }
                           }
                         `;
                         document.head.appendChild(style);
+                        
+                        // Add class to target element
+                        const certElement = document.getElementById(`printable-cert-${lessonId}`);
+                        if (certElement) certElement.classList.add('printable-cert-isolated');
+                        
                         window.print();
+                        
+                        // Cleanup
+                        if (certElement) certElement.classList.remove('printable-cert-isolated');
                         document.head.removeChild(style);
                       } else {
                         alert('Sertifikat dapat diunduh (PDF/Image) melalui versi Web untuk hasil maksimal.');

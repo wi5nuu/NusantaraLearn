@@ -31,6 +31,7 @@ import { XPProgress } from '../../components/XPProgress';
 import { NotificationModal } from '../../components/NotificationModal';
 import { GlassHeader } from '../../components/GlassHeader';
 import storiesData from '../../data/stories.json';
+import { GAMES, useGames } from '../../stores/useGames';
 import Animated, { useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -297,6 +298,44 @@ export default function HomeScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* ============ GAMES HUB SECTION ============ */}
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Arena Game 🎮</Text>
+            <Text style={styles.sectionSubtitle}>8 mini-game seru menunggumu!</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.seeAllBtn}
+            onPress={() => router.push('/games')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.seeAll}>Buka Arena →</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.gamesScroll}
+        >
+          {GAMES.map((game, i) => (
+            <TouchableOpacity
+              key={game.id}
+              style={[styles.gameCard, { borderColor: game.color + '55' }]}
+              onPress={() => router.push({ pathname: '/games/[id]', params: { id: game.id } })}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.gameIconWrap, { backgroundColor: game.color + '22' }]}>
+                <Text style={styles.gameIcon}>{game.emoji}</Text>
+              </View>
+              <Text style={styles.gameTitle}>{game.title}</Text>
+              <View style={[styles.gameDiff, { backgroundColor: game.color + '22' }]}>
+                <Text style={[styles.gameDiffText, { color: game.color }]}>{game.totalLevels} Lv</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </ScrollView>
     </View>
   );
@@ -586,5 +625,54 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     minHeight: 180,
-  }
+  },
+  sectionSubtitle: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  seeAllBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  gamesScroll: {
+    paddingHorizontal: 20,
+    gap: 12,
+    paddingVertical: 4,
+    paddingBottom: 16,
+  },
+  gameCard: {
+    width: 120,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 18,
+    padding: 14,
+    gap: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  gameIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gameIcon: {
+    fontSize: 30,
+  },
+  gameTitle: {
+    color: Colors.textPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  gameDiff: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  gameDiffText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
 });

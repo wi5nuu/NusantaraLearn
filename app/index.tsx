@@ -62,7 +62,15 @@ export default function SplashScreen() {
   const handleStart = async () => {
     const done = await AsyncStorage.getItem('onboarding_done');
     if (done === 'true') {
-      router.replace('/(tabs)/home');
+      // Even if onboarding was done, check if name still exists in current storage
+      const raw = await AsyncStorage.getItem('user_profile');
+      const profile = raw ? JSON.parse(raw) : null;
+      if (profile && profile.name && profile.name.trim().length > 0) {
+        router.replace('/(tabs)/home');
+      } else {
+        // Name missing (new browser/cleared storage) — re-prompt username
+        router.replace('/onboarding');
+      }
     } else {
       router.replace('/onboarding');
     }
