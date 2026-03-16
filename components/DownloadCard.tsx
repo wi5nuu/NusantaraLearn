@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Linking,
   Alert,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -34,30 +35,33 @@ export const DownloadCard = ({ pkg }: Props) => {
   const handleDownload = () => {
     if (pkg.status === 'available') {
       startDownload(pkg.id);
-      // Animate progress from 0 to 1 over 1.5s
+      // Simpan referensi ke interval jika perlu, tapi di sini kita pakai timing
       progressWidth.value = withTiming(1, { duration: 1500 }, (finished) => {
         if (finished) {
           finishDownload(pkg.id);
         }
       });
     } else if (pkg.status === 'installed' && pkg.fileName) {
-      // In a real app, you would resolve the local URI. 
-      // For this prototype, we'll alert the user and simulate opening.
-      Alert.alert(
-        'Buka Materi',
-        `Membuka file: ${pkg.fileName}`,
-        [
-          { text: 'Batal', style: 'cancel' },
-          { 
-            text: 'Buka PDF', 
-            onPress: () => {
-              // Note: In Expo web dev, assets are served. 
-              // This is a placeholder for the real open logic.
-              console.log(`Opening: /assets/docs/${pkg.fileName}`);
-            } 
-          },
-        ]
-      );
+      if (Platform.OS === 'web') {
+        const fileUrl = `/assets/docs/${pkg.fileName}`;
+        // Create a hidden anchor to force download
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = pkg.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Fallback for native: Open in browser or show alert
+        const fileUrl = `/assets/docs/${pkg.fileName}`;
+        Linking.canOpenURL(fileUrl).then(supported => {
+          if (supported) {
+            Linking.openURL(fileUrl);
+          } else {
+            Alert.alert('Info', 'File PDF dapat diunduh melalui versi Web.');
+          }
+        });
+      }
     }
   };
 

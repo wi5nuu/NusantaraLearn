@@ -5,8 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LottieView from 'lottie-react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, router } from 'expo-router';
 import Animated, {
   FadeInDown,
@@ -15,38 +19,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors } from '../../constants/colors';
 import { useUser } from '../../stores/useUser';
+import quizzesData from '../../data/quizzes.json';
 
 const { width } = Dimensions.get('window');
 
-// Comprehensive Quiz Data Map
-const QUIZ_DATA: Record<string, any[]> = {
-  // Lesson IDs
-  '1': [
-    { id: 1, question: 'Jika kamu memiliki 3 keranjang dan setiap keranjang berisi 5 buah sawit, berapa total buah sawitmu?', options: ['8 buah', '15 buah', '10 buah', '25 buah'], correctIndex: 1 },
-    { id: 2, question: 'Perkalian adalah penjumlahan berulang dari angka yang sama. Benar atau salah?', options: ['Benar', 'Salah'], correctIndex: 0 },
-  ],
-  // Video IDs
-  'v1': [ // Tata Surya
-    { id: 1, question: 'Planet apa yang paling dekat dengan Matahari?', options: ['Venus', 'Bumi', 'Merkurius', 'Mars'], correctIndex: 2 },
-    { id: 2, question: 'Berapa jumlah planet utama dalam Tata Surya kita?', options: ['7', '8', '9', '10'], correctIndex: 1 },
-  ],
-  'v2': [ // Jarimatika
-    { id: 1, question: 'Dalam Jarimatika, tangan kanan biasanya mewakili apa?', options: ['Satuan', 'Puluhan', 'Ratusan', 'Ribuan'], correctIndex: 0 },
-    { id: 2, question: 'Berapakah hasil dari 2 + 2 menggunakan teknik jari?', options: ['3', '4', '5', '6'], correctIndex: 1 },
-  ],
-  'v3': [ // Sayur
-    { id: 1, question: 'Vitamin apa yang dominan terdapat pada Wortel?', options: ['Vitamin C', 'Vitamin D', 'Vitamin A', 'Vitamin K'], correctIndex: 2 },
-    { id: 2, question: 'Sayuran hijau baik untuk tubuh karena mengandung banyak apa?', options: ['Gula', 'Serat & Klorofil', 'Lemak', 'Garam'], correctIndex: 1 },
-  ],
-  'v4': [ // Stop Bullying
-    { id: 1, question: 'Apa yang harus kita lakukan jika melihat perundungan?', options: ['Diam saja', 'Ikut menertawakan', 'Melapor ke Guru/Ortu', 'Lari menjauh'], correctIndex: 2 },
-    { id: 2, question: 'Mengejek nama orang tua termasuk kategori Bullying?', options: ['Ya, Bullying Verbal', 'Tidak, itu cuma candaan', 'Bukan kategori apa-apa'], correctIndex: 0 },
-  ],
-  'v5': [ // Haus
-    { id: 1, question: 'Berapa persen air yang menyusun tubuh manusia?', options: ['10-20%', '30-40%', '60-70%', '90-100%'], correctIndex: 2 },
-    { id: 2, question: 'Haus adalah sinyal dari organ apa?', options: ['Jantung', 'Hati', 'Otak', 'Paru-paru'], correctIndex: 2 },
-  ],
-};
+// Comprehensive Quiz Data Map (Fallback for missing IDs)
+const FALLBACK_QUIZ: any[] = [
+  { id: 1, question: 'Siapakah nama maskot NusantaraLearn?', options: ['Alpi', 'Budi', 'Caca', 'Dedi'], correctIndex: 0 },
+];
 
 const DEFAULT_QUESTIONS = [
   { id: 1, question: 'Siapakah nama maskot NusantaraLearn?', options: ['Andi', 'Budi', 'Caca', 'Dedi'], correctIndex: 0 },
@@ -56,13 +36,35 @@ export default function QuizScreen() {
   const { id } = useLocalSearchParams();
   const { addXP, incrementLessons } = useUser();
   
-  const questions = QUIZ_DATA[id as string] || DEFAULT_QUESTIONS;
+  const quizObj = (quizzesData.quizzes as any[]).find(q => q.lesson_id === id) || { 
+    questions: FALLBACK_QUIZ, 
+    isTimeTrial: false,
+    timeLimit: 0 
+  };
+  const questions = quizObj.questions;
   
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
+  const [bonusXP, setBonusXP] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(quizObj.timeLimit || 0);
+
+  React.useEffect(() => {
+    if (!quizObj.isTimeTrial || isFinished || isAnswered) return;
+    
+    if (timeLeft <= 0) {
+      handleNext();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev: number) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, isFinished, isAnswered]);
 
   const question = questions[currentIdx];
 
@@ -73,6 +75,9 @@ export default function QuizScreen() {
 
     if (idx === question.correctIndex) {
       setScore((s) => s + 100);
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -83,8 +88,15 @@ export default function QuizScreen() {
       setIsAnswered(false);
     } else {
       // Finish Quiz
-      addXP(score);
-      incrementLessons();
+      let finalScore = score;
+      if (quizObj.isTimeTrial && timeLeft > 0) {
+        const timeBonus = Math.floor(timeLeft * 5); // 5 XP per remaining second
+        setBonusXP(timeBonus);
+        finalScore += timeBonus;
+      }
+      addXP(finalScore);
+      incrementLessons(id as string, finalScore);
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setIsFinished(true);
     }
   };
@@ -92,23 +104,55 @@ export default function QuizScreen() {
   if (isFinished) {
     return (
       <SafeAreaView style={[styles.safeArea, styles.centerAll]} edges={['top', 'bottom']}>
-        <Animated.View entering={ZoomIn.duration(800)} style={styles.resultBox}>
-          <Text style={styles.trophyEmoji}>🏆</Text>
-          <Text style={styles.resultTitle}>Luar Biasa!</Text>
-          <Text style={styles.resultDesc}>Kamu berhasil menyelesaikan kuis ini.</Text>
-          
-          <View style={styles.xpBadge}>
-            <Text style={styles.xpText}>+{score} XP Diperoleh</Text>
-          </View>
+        <LottieView
+          autoPlay
+          loop={false}
+          style={styles.lottieOverlay}
+          source={{ uri: 'https://lottie.host/79188f6c-6744-486a-814d-65b11910d54a/WvjL5e1X9Z.json' }}
+        />
+        {Platform.OS === 'web' ? (
+          <View style={styles.resultBox}>
+            <Text style={styles.trophyEmoji}>🏆</Text>
+            <Text style={styles.resultTitle}>Luar Biasa!</Text>
+            <Text style={styles.resultDesc}>Kamu berhasil menyelesaikan kuis ini.</Text>
+            
+            <View style={styles.xpBadge}>
+              <Text style={styles.xpText}>+{score + bonusXP} XP Diperoleh</Text>
+            </View>
 
-          <TouchableOpacity
-            style={styles.doneButton}
-            onPress={() => router.replace('/(tabs)/profile')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.doneButtonText}>Lihat Profil Saya →</Text>
-          </TouchableOpacity>
-        </Animated.View>
+            {bonusXP > 0 && (
+              <Text style={styles.bonusLabel}>Termasuk Bonus Waktu: +{bonusXP} XP ⚡</Text>
+            )}
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.doneButton,
+                pressed && { opacity: 0.8 }
+              ]}
+              onPress={() => router.replace('/(tabs)/profile')}
+            >
+              <Text style={styles.doneButtonText}>Lihat Profil Saya →</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Animated.View entering={ZoomIn.duration(800)} style={styles.resultBox}>
+            <Text style={styles.trophyEmoji}>🏆</Text>
+            <Text style={styles.resultTitle}>Luar Biasa!</Text>
+            <Text style={styles.resultDesc}>Kamu berhasil menyelesaikan kuis ini.</Text>
+            
+            <View style={styles.xpBadge}>
+              <Text style={styles.xpText}>+{score} XP Diperoleh</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => router.replace('/(tabs)/profile')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.doneButtonText}>Lihat Profil Saya →</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </SafeAreaView>
     );
   }
@@ -117,9 +161,7 @@ export default function QuizScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       {/* Quiz Header Progress */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-          <Text style={styles.closeIcon}>×</Text>
-        </TouchableOpacity>
+        <View style={{ width: 30 }} />
         <View style={styles.progressContainer}>
           <View
             style={[
@@ -128,20 +170,33 @@ export default function QuizScreen() {
             ]}
           />
         </View>
-        <Text style={styles.progressText}>
-          {currentIdx + 1}/{questions.length}
-        </Text>
+        <View style={styles.metaWrap}>
+          <Text style={styles.progressText}>
+            {currentIdx + 1}/{questions.length}
+          </Text>
+          {quizObj.isTimeTrial && (
+            <View style={[styles.timerCircle, timeLeft < 10 && styles.timerDanger]}>
+              <Text style={styles.timerText}>{timeLeft}s</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Question Area */}
       <View style={styles.content}>
-        <Animated.Text
-          key={`q-${currentIdx}`}
-          entering={FadeInDown.duration(400)}
-          style={styles.questionText}
-        >
-          {question.question}
-        </Animated.Text>
+        {Platform.OS === 'web' ? (
+          <Text style={styles.questionText}>
+            {question.question}
+          </Text>
+        ) : (
+          <Animated.Text
+            key={`q-${currentIdx}`}
+            entering={FadeInDown.duration(400)}
+            style={styles.questionText}
+          >
+            {question.question}
+          </Animated.Text>
+        )}
 
         {/* Options */}
         <View style={styles.optionsList}>
@@ -167,6 +222,25 @@ export default function QuizScreen() {
               optStyle = styles.optionSelected;
             }
 
+            if (Platform.OS === 'web') {
+              return (
+                <View key={`${currentIdx}-${idx}`}>
+                  <Pressable
+                    style={({ pressed }) => [
+                      optStyle,
+                      pressed && !isAnswered && { opacity: 0.8, transform: [{ scale: 0.99 }] }
+                    ]}
+                    onPress={() => handleSelect(idx)}
+                    disabled={isAnswered}
+                  >
+                    <Text style={textStyle}>{opt}</Text>
+                    {showStatus && isCorrect && <Text style={styles.iconCheck}>✓</Text>}
+                    {showStatus && isSelected && !isCorrect && <Text style={styles.iconCross}>✗</Text>}
+                  </Pressable>
+                </View>
+              );
+            }
+
             return (
               <Animated.View
                 key={`${currentIdx}-${idx}`}
@@ -188,24 +262,32 @@ export default function QuizScreen() {
         </View>
       </View>
 
-      {/* Bottom Bar */}
-      {isAnswered && (
-        <Animated.View
-          entering={FadeInDown.duration(300)}
-          style={styles.bottomBar}
+      <View style={styles.bottomBar}>
+        {isAnswered && (
+          <View style={{ marginBottom: 12 }}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.nextBtn,
+                selectedIdx === question.correctIndex ? styles.nextBtnCorrect : styles.nextBtnWrong,
+                pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+              ]}
+              onPress={handleNext}
+            >
+              <Text style={styles.nextBtnText}>LANJUTKAN</Text>
+            </Pressable>
+          </View>
+        )}
+        
+        <Pressable
+          style={({ pressed }) => [
+            styles.exitBtn,
+            pressed && { opacity: 0.7 }
+          ]}
+          onPress={() => router.back()}
         >
-          <TouchableOpacity
-            style={[
-              styles.nextBtn,
-              selectedIdx === question.correctIndex ? styles.nextBtnCorrect : styles.nextBtnWrong,
-            ]}
-            onPress={handleNext}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.nextBtnText}>LANJUTKAN</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+          <Text style={styles.exitBtnText}>Keluar Kuis</Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -279,6 +361,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 16,
+    zIndex: 10,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
   },
   optionSelected: {
     flexDirection: 'row',
@@ -357,6 +443,10 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
+    zIndex: 20,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
   },
   nextBtnCorrect: {
     backgroundColor: Colors.primary,
@@ -416,10 +506,64 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
   },
   doneButtonText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 15,
+  },
+  exitBtn: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
+  },
+  exitBtnText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  metaWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  timerCircle: {
+    backgroundColor: 'rgba(55,138,221,0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.blue,
+  },
+  timerDanger: {
+    backgroundColor: 'rgba(226,75,74,0.1)',
+    borderColor: '#e24b4a',
+  },
+  timerText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  bonusLabel: {
+    color: Colors.primaryLight,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 20,
+  },
+  lottieOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
+    pointerEvents: 'none',
   },
 });

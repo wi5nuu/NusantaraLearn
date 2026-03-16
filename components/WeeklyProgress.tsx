@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
@@ -8,6 +8,43 @@ const DATA = [40, 70, 50, 90, 60, 30, 80]; // Mock percentages
 
 export const WeeklyProgress = () => {
   const maxVal = Math.max(...DATA);
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Aktivitas Belajar (Minggu Ini)</Text>
+        
+        <View style={styles.chart}>
+          {DATA.map((val, i) => (
+            <View key={i} style={styles.barColumn}>
+              <View style={styles.barBg}>
+                <View 
+                  style={[
+                    styles.barFill, 
+                    { height: `${val}%` },
+                    val === maxVal && styles.barFillActive
+                  ]} 
+                />
+              </View>
+              <Text style={styles.dayLabel}>{DAYS[i]}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Rata-rata</Text>
+            <Text style={styles.statValue}>45 mnt</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Total Waktu</Text>
+            <Text style={styles.statValue}>5.2 jam</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <Animated.View entering={FadeInUp.duration(600)} style={styles.container}>

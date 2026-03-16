@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming, withSpring } from 'react-native-reanimated';
 
@@ -18,6 +18,34 @@ export const DailyQuest = () => {
     });
     setClaimed(true);
   };
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Misi Harian Tersedia! 🔥</Text>
+          <Text style={styles.subtitle}>Selesaikan 1 pelajaran hari ini untuk bonus +50 XP</Text>
+        </View>
+
+        <View style={styles.actionRow}>
+          <View style={styles.progressBox}>
+            <Text style={styles.progressText}>0 / 1 Selesai</Text>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: claimed ? '100%' : '50%' }]} />
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.claimButton, claimed && styles.claimButtonDisabled]}
+            activeOpacity={0.8}
+            onPress={handleClaim}
+          >
+            <Text style={styles.claimButtonText}>{claimed ? 'Terklaim ✓' : 'Klaim Hadiah'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <Animated.View entering={FadeIn.duration(600)} style={styles.container}>
@@ -103,10 +131,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: `0px 4px 8px ${Colors.primary}4D`,
+      }
+    }),
   },
   claimButtonDisabled: {
     backgroundColor: Colors.border,

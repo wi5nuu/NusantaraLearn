@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -7,48 +6,43 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
+import { Link, useLocalSearchParams, router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { VIDEOS } from '../../constants/subjects';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
-const VIDEO_HEIGHT = (width * 9) / 16;
-
 export default function VideoScreen() {
   const { id } = useLocalSearchParams();
+  const { width } = useWindowDimensions();
+  const VIDEO_HEIGHT = width > 600 ? 400 : (width * 9) / 16;
+  
   const video = VIDEOS.find((v) => v.id === id) || VIDEOS[0];
 
-  // Simulation of an embedded player using a colored View for the prototype
-  // In a real app, you'd use react-native-youtube-iframe or a WebView
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          style={styles.backButton}
-        >
-          <Text style={styles.backText}>←</Text>
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
         <Text style={styles.headerTitle} numberOfLines={1}>Menonton Video</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Mock Video Player */}
-        <View style={styles.playerContainer}>
+        <View style={[styles.playerContainer, { height: VIDEO_HEIGHT || 250 }]}>
           {Platform.OS === 'web' ? (
-             <iframe
+              <iframe
                 width="100%"
-                height={VIDEO_HEIGHT}
-                src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=0&rel=0`}
+                height="100%"
+                src={`https://www.youtube.com/embed/${video.youtubeId}?rel=0&autoplay=0&enablejsapi=1&origin=${Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : ''}`}
                 frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
-                style={{ borderRadius: 0 }}
-             />
+                style={{ borderRadius: 0, border: 'none' }}
+              />
           ) : (
             <View style={[styles.nativePlayerPlaceholder, { height: VIDEO_HEIGHT }]}>
                <Text style={styles.playIcon}>🎬</Text>
@@ -59,37 +53,74 @@ export default function VideoScreen() {
         </View>
 
         <View style={styles.content}>
-          <Animated.View entering={FadeInUp.delay(200).duration(600)}>
-            <Text style={styles.title}>{video.title}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>Materi Terkait</Text>
-            </View>
-            <Text style={styles.description}>{video.description}</Text>
-          </Animated.View>
-
-          <Animated.View 
-            entering={FadeInDown.delay(400).duration(600)} 
-            style={styles.materialsContainer}
-          >
-            {video.materials.map((item, idx) => (
-              <View key={idx} style={styles.materialItem}>
-                <View style={styles.dot} />
-                <Text style={styles.materialText}>{item}</Text>
+          {Platform.OS === 'web' ? (
+            <View>
+              <Text style={styles.title}>{video.title}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Materi Terkait</Text>
               </View>
-            ))}
-          </Animated.View>
+              <Text style={styles.description}>{video.description}</Text>
+            </View>
+          ) : (
+            <Animated.View entering={FadeInUp.delay(200).duration(600)}>
+              <Text style={styles.title}>{video.title}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Materi Terkait</Text>
+              </View>
+              <Text style={styles.description}>{video.description}</Text>
+            </Animated.View>
+          )}
+
+          {Platform.OS === 'web' ? (
+            <View style={styles.materialsContainer}>
+              {video.materials.map((item, idx) => (
+                <View key={idx} style={styles.materialItem}>
+                  <View style={styles.dot} />
+                  <Text style={styles.materialText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Animated.View 
+              entering={FadeInDown.delay(400).duration(600)} 
+              style={styles.materialsContainer}
+            >
+              {video.materials.map((item, idx) => (
+                <View key={idx} style={styles.materialItem}>
+                  <View style={styles.dot} />
+                  <Text style={styles.materialText}>{item}</Text>
+                </View>
+              ))}
+            </Animated.View>
+          )}
 
           <View style={styles.spacer} />
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.quizButton}
-          onPress={() => router.push(`/quiz/${video.id}`)}
-        >
-          <Text style={styles.quizButtonText}>Selesaikan Kuis & Dapatkan XP</Text>
-        </TouchableOpacity>
+        <View style={styles.footerButtons}>
+          <Link href="/home" asChild>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && { opacity: 0.7 }
+              ]}
+            >
+              <Text style={styles.secondaryButtonText}>Kembali</Text>
+            </Pressable>
+          </Link>
+          <Link href={`/quiz/${video.id}`} asChild>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.quizButton,
+                pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+              ]}
+            >
+              <Text style={styles.quizButtonText}>Mulai Kuis</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -115,6 +146,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
   },
   backText: {
     color: Colors.textPrimary,
@@ -219,17 +254,55 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
+  footerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: Colors.bgCard,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    zIndex: 20,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
+  },
+  secondaryButtonText: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
   quizButton: {
+    flex: 2,
     backgroundColor: Colors.primary,
     height: 56,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    zIndex: 20,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: `0px 4px 8px ${Colors.primary}4D`,
+      }
+    }),
   },
   quizButtonText: {
     color: '#fff',

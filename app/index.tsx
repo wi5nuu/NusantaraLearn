@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Platform,
+  Pressable,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -12,7 +14,8 @@ import Animated, {
   withTiming,
   withDelay,
 } from 'react-native-reanimated';
-import { router } from 'expo-router';
+import { router, Link } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 
@@ -25,6 +28,8 @@ const FadeUp = ({
   children: React.ReactNode;
   delay?: number;
 }) => {
+  if (Platform.OS === 'web') return <>{children}</>;
+
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(24);
 
@@ -42,11 +47,32 @@ const FadeUp = ({
 };
 
 export default function SplashScreen() {
+  const MainContainer = Platform.OS === 'web' ? View : SafeAreaView;
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const done = await AsyncStorage.getItem('onboarding_done');
+      if (done === 'true') {
+        // We still allow them to click the CTA, but we could auto-redirect
+      }
+    };
+    checkOnboarding();
+  }, []);
+
+  const handleStart = async () => {
+    const done = await AsyncStorage.getItem('onboarding_done');
+    if (done === 'true') {
+      router.replace('/(tabs)/home');
+    } else {
+      router.replace('/onboarding');
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <MainContainer style={styles.safeArea}>
       <View style={styles.container}>
         {/* Glow */}
-        <View style={styles.glow} />
+        {Platform.OS !== 'web' && <View style={styles.glow} pointerEvents="none" />}
 
         {/* Logo + Title */}
         <FadeUp delay={0}>
@@ -65,13 +91,15 @@ export default function SplashScreen() {
 
         {/* CTA Button */}
         <FadeUp delay={200}>
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => router.replace('/(tabs)/home')}
-            activeOpacity={0.95}
+          <Pressable
+            style={({ pressed }) => [
+              styles.ctaButton,
+              pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+            ]}
+            onPress={handleStart}
           >
             <Text style={styles.ctaText}>Mulai Belajar →</Text>
-          </TouchableOpacity>
+          </Pressable>
         </FadeUp>
 
         {/* Footer */}
@@ -81,7 +109,7 @@ export default function SplashScreen() {
           </Text>
         </FadeUp>
       </View>
-    </SafeAreaView>
+    </MainContainer>
   );
 }
 
@@ -106,6 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(29,158,117,0.18)',
     top: height * 0.5 - 200,
     alignSelf: 'center',
+    zIndex: -1,
   },
   logoSection: {
     alignItems: 'center',
@@ -118,11 +147,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 12,
+      },
+      web: {
+        boxShadow: `0px 8px 16px ${Colors.primary}80`,
+      }
+    }),
   },
   logoEmoji: {
     fontSize: 38,
@@ -149,11 +187,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 48,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    zIndex: 999,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: `0px 6px 12px ${Colors.primary}66`,
+        cursor: 'pointer',
+      }
+    }),
+  },
+  fadeUpWeb: {
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 5,
   },
   ctaText: {
     color: '#fff',

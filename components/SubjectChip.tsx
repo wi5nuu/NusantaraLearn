@@ -4,6 +4,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Subject } from '../constants/subjects';
@@ -16,20 +18,20 @@ interface Props {
 
 export const SubjectChip = ({ subject, onPress, isActive }: Props) => {
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.chip, 
         { backgroundColor: subject.bgColor },
-        isActive && styles.chipActive
+        isActive && styles.chipActive,
+        pressed && { opacity: 0.7 }
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       <View style={styles.iconBox}>
         <Text style={styles.icon}>{subject.icon}</Text>
       </View>
       <Text style={styles.label}>{subject.label}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -42,6 +44,11 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderWidth: 2,
     borderColor: 'transparent',
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      }
+    }),
   },
   chipActive: {
     borderColor: Colors.primaryLight,

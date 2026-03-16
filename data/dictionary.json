@@ -1,0 +1,52 @@
+[
+  {
+    "word": "Sawah",
+    "definition": "Tanah yang digarap dan diairi untuk tempat menanam padi.",
+    "regional": {
+      "jv": "Sabin",
+      "su": "Sawah",
+      "bg": "Galung"
+    },
+    "example": "Pak Tani sedang membajak sawah di pagi hari."
+  },
+  {
+    "word": "Pasar",
+    "definition": "Tempat orang berjual beli barang kebutuhan sehari-hari.",
+    "regional": {
+      "jv": "Peken",
+      "su": "Pasar",
+      "bg": "Pasara"
+    },
+    "example": "Ibu pergi ke pasar untuk membeli sayur dan ikan."
+  },
+  {
+    "word": "Padi",
+    "definition": "Tumbuhan yang menghasilkan beras, bahan pokok makanan kita.",
+    "regional": {
+      "jv": "Pantun",
+      "su": "Pare",
+      "bg": "Ase"
+    },
+    "example": "Padi di sawah sudah mulai menguning dan siap panen."
+  },
+  {
+    "word": "Sungai",
+    "definition": "Aliran air yang besar dan memanjang yang mengalir ke laut.",
+    "regional": {
+      "jv": "Kali",
+      "su": "Walungan",
+      "bg": "Salo"
+    },
+    "example": "Anak-anak mandi di sungai yang airnya jernih."
+  },
+  {
+    "word": "Pintar",
+    "definition": "Cepat mengetahui dan memahami sesuatu; cerdik.",
+    "regional": {
+      "jv": "Pinter",
+      "su": "Pinter",
+      "bg": "Macca"
+    },
+    "example": "Kamu pasti jadi anak pintar kalau rajin membaca buku."
+  }
+]

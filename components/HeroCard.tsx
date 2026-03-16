@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -11,6 +12,7 @@ import Animated, {
   withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
+import { MotiView } from 'moti';
 import { Colors } from '../constants/colors';
 
 const HERO_SLIDES = [
@@ -88,6 +90,46 @@ export const HeroCard = () => {
     colorAnim.value = withTiming(activeIndex, { duration: 800 });
   }, [activeIndex]);
 
+  const activeSlide = HERO_SLIDES[activeIndex];
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.card, { backgroundColor: activeSlide.color }]}>
+        <View style={styles.circleTopRight} />
+        <View style={styles.circleBottomRight} />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.tagPill}>
+              <Text style={styles.tagText}>LANJUTKAN BELAJAR</Text>
+            </View>
+            <View style={styles.pagination}>
+              {HERO_SLIDES.map((_, i) => (
+                <View 
+                  key={i} 
+                  style={[
+                    styles.dot, 
+                    activeIndex === i && styles.dotActive
+                  ]} 
+                />
+              ))}
+            </View>
+          </View>
+          <Text style={styles.title}>{`${activeSlide.subject}\n${activeSlide.title}`}</Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${activeSlide.progress * 100}%` }]} />
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaText}>📖 {activeSlide.chapter}</Text>
+            <Text style={styles.metaDot}>·</Text>
+            <Text style={styles.metaText}>⏱ {activeSlide.timeLeft} lagi</Text>
+            <Text style={styles.metaDot}>·</Text>
+            <Text style={styles.metaText}>{Math.round(activeSlide.progress * 100)}% selesai</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   const animatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       colorAnim.value,
@@ -101,10 +143,13 @@ export const HeroCard = () => {
     width: `${progressWidth.value * 100}%` as any,
   }));
 
-  const activeSlide = HERO_SLIDES[activeIndex];
-
   return (
-    <Animated.View style={[styles.card, animatedStyle]}>
+    <MotiView
+      from={{ opacity: 0, scale: 0.95, translateY: 20 }}
+      animate={{ opacity: 1, scale: 1, translateY: 0 }}
+      transition={{ type: 'spring', damping: 12, delay: 100 }}
+    >
+      <Animated.View style={[styles.card, animatedStyle]}>
       {/* Decorative circles */}
       <View style={styles.circleTopRight} />
       <View style={styles.circleBottomRight} />
@@ -146,7 +191,8 @@ export const HeroCard = () => {
           <Text style={styles.metaText}>{Math.round(activeSlide.progress * 100)}% selesai</Text>
         </View>
       </View>
-    </Animated.View>
+      </Animated.View>
+    </MotiView>
   );
 };
 

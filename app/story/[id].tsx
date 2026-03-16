@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar as RNStatusBar,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -159,37 +160,69 @@ export default function StoryScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInUp.duration(600).delay(100)}>
+        {Platform.OS === 'web' ? (
           <View style={[styles.heroCover, { backgroundColor: book.coverColor }]}>
             <Text style={styles.heroEmoji}>{book.emoji}</Text>
           </View>
-        </Animated.View>
+        ) : (
+          <Animated.View entering={FadeInUp.duration(600).delay(100)}>
+            <View style={[styles.heroCover, { backgroundColor: book.coverColor }]}>
+              <Text style={styles.heroEmoji}>{book.emoji}</Text>
+            </View>
+          </Animated.View>
+        )}
 
-        <Animated.View style={styles.article} entering={FadeInUp.duration(600).delay(200)}>
-          <Text style={[styles.title, { color: dynamicColors.title }]}>{book.title}</Text>
-          <Text style={styles.author}>Karya: {book.author}</Text>
+        {Platform.OS === 'web' ? (
+          <View style={styles.article}>
+            <Text style={[styles.title, { color: dynamicColors.title }]}>{book.title}</Text>
+            <Text style={styles.author}>Karya: {book.author}</Text>
 
-          {/* Render Story Paragraphs */}
-          <View style={styles.storyContainer}>
-            {story.paragraphs.map((p, idx) => (
-              <Text key={idx} style={[styles.paragraph, { color: dynamicColors.text }]}>
-                {p}
-              </Text>
-            ))}
+            <View style={styles.storyContainer}>
+              {story.paragraphs.map((p, idx) => (
+                <Text key={idx} style={[styles.paragraph, { color: dynamicColors.text }]}>
+                  {p}
+                </Text>
+              ))}
+            </View>
           </View>
-        </Animated.View>
+        ) : (
+          <Animated.View style={styles.article} entering={FadeInUp.duration(600).delay(200)}>
+            <Text style={[styles.title, { color: dynamicColors.title }]}>{book.title}</Text>
+            <Text style={styles.author}>Karya: {book.author}</Text>
+
+            <View style={styles.storyContainer}>
+              {story.paragraphs.map((p, idx) => (
+                <Text key={idx} style={[styles.paragraph, { color: dynamicColors.text }]}>
+                  {p}
+                </Text>
+              ))}
+            </View>
+          </Animated.View>
+        )}
       </ScrollView>
 
       {/* Finishing / Rating Bottom Bar */}
-      <Animated.View style={[styles.bottomBar, { backgroundColor: dynamicColors.headerBg, borderTopColor: isSepia ? 'rgba(0,0,0,0.1)' : Colors.border }]} entering={FadeIn.duration(800).delay(600)}>
-        <TouchableOpacity
-          style={styles.completeButton}
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.completeButtonText}>✓ Tandai Selesai Dibaca</Text>
-        </TouchableOpacity>
-      </Animated.View>
+      {Platform.OS === 'web' ? (
+        <View style={[styles.bottomBar, { backgroundColor: dynamicColors.headerBg, borderTopColor: isSepia ? 'rgba(0,0,0,0.1)' : Colors.border }]}>
+          <TouchableOpacity
+            style={styles.completeButton}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.completeButtonText}>✓ Tandai Selesai Dibaca</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <Animated.View style={[styles.bottomBar, { backgroundColor: dynamicColors.headerBg, borderTopColor: isSepia ? 'rgba(0,0,0,0.1)' : Colors.border }]} entering={FadeIn.duration(800).delay(600)}>
+          <TouchableOpacity
+            style={styles.completeButton}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.completeButtonText}>✓ Tandai Selesai Dibaca</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
@@ -241,11 +274,21 @@ const styles = StyleSheet.create({
   },
   heroEmoji: {
     fontSize: 100,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 10,
+      },
+      web: {
+        // Text shadow on web is different, usually uses textShadow
+        textShadow: '0px 10px 20px rgba(0,0,0,0.3)',
+      }
+    }),
   },
   article: {
     padding: 24,
@@ -288,11 +331,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 16,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: `0px 4px 8px ${Colors.primary}4D`,
+      }
+    }),
   },
   completeButtonText: {
     color: '#fff',

@@ -8,8 +8,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,6 +23,7 @@ import Animated, {
 import { router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { ChatBubble } from '../../components/ChatBubble';
+import { GlassHeader } from '../../components/GlassHeader';
 import { TypingIndicator } from '../../components/TypingIndicator';
 import { useChat, Message } from '../../stores/useChat';
 import {
@@ -30,6 +34,8 @@ import {
   QUICK_QUESTIONS,
   QUICK_ANSWERS,
 } from '../../constants/responses';
+import { initAI, askAI } from '../../services/AIEngine';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const OnlineIndicator = () => {
   const opacity = useSharedValue(1);
@@ -49,12 +55,36 @@ const OnlineIndicator = () => {
   return <Animated.View style={[styles.onlineDot, style]} />;
 };
 
+const { width } = Dimensions.get('window'); // Added for Dimensions
+
 export default function TutorScreen() {
   const { language, messages, isTyping, setLanguage, addMessage, setTyping } = useChat();
   const [inputText, setInputText] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [aiReady, setAiReady] = useState(false);
+  const [initProgress, setInitProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
+
+  // Initialize AI
+  useEffect(() => {
+    const startAI = async () => {
+      if (Platform.OS !== 'web') {
+        setError("AI hanya didukung di versi Web untuk saat ini. Gunakan HP dengan RAM besar (8GB+) untuk performa terbaik.");
+        return;
+      }
+      try {
+        await initAI((p) => setInitProgress(p));
+        setAiReady(true);
+      } catch (e: any) {
+        console.error("AI Init Failed", e);
+        setError(e.message || "Gagal menginisialisasi AI. Pastikan browser Anda mendukung WebGPU.");
+      }
+    };
+    startAI();
+  }, []);
 
   // Randomize questions on mount
   useEffect(() => {
@@ -68,13 +98,15 @@ export default function TutorScreen() {
       addMessage({
         id: 'init',
         role: 'ai',
-        text: 'Halo! 👋 Saya Pak AI, guru virtual kamu. Ada yang ingin kamu pelajari hari ini?',
+        text: 'Halo! 👋 Saya Pak AI, guru virtual kamu. Kamu bisa tanya apa saja, misal tentang Matematika, Sejarah, atau Tata Surya. Ada yang ingin kamu pelajari hari ini?',
       });
     }
   }, []);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const handleSend = async (text: string) => {
+    if (!text.trim() || isTyping || !aiReady) return;
+
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -85,51 +117,69 @@ export default function TutorScreen() {
     setInputText('');
     setTyping(true);
 
-    // AI Logic: Check if it's a quick question or use default response
-    const quickAnswer = QUICK_ANSWERS[text.trim()];
-    const responseText = quickAnswer || AI_RESPONSES[language];
-
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Use real AI
+      let reply = "";
+      try {
+        reply = await askAI(text.trim(), language, "Umum");
+      } catch (aiError) {
+        console.error("AI Inference Failed", aiError);
+        // Fallback internally if inference fails
+        const langData = AI_RESPONSES[language as keyof typeof AI_RESPONSES] || AI_RESPONSES['id'];
+        reply = (langData as any)[text.trim().toLowerCase()] || "Maaf, Pak AI sedang istirahat. Coba tanya lagi nanti ya!";
+      }
+      
       setTyping(false);
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        text: responseText,
+        text: reply || AI_RESPONSES[language],
       };
       addMessage(aiMsg);
-      setTimeout(() => {
-        scrollRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 1200);
+    } catch (e) {
+      setTyping(false);
+      addMessage({
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        text: "Maaf, Pak AI sedang berpikir keras. Coba lagi ya!",
+      });
+    }
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
   const LANGS = Object.keys(LANGUAGE_LABELS) as Language[];
 
+  const toggleListening = () => {
+    setIsListening(!isListening);
+    if (!isListening) {
+      // Simulate listening...
+      setTimeout(() => {
+        setIsListening(false);
+        setInputText('Halo Pak AI, saya ingin belajar tentang kebudayaan Jawa.');
+      }, 2000);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
+      <GlassHeader 
+        title="Pak AI — Guru Virtual 🤖" 
+        onBack={() => router.back()}
+        rightElement={
+          <View style={styles.headerRight}>
+            <OnlineIndicator />
+            <Text style={styles.statusText}>Online</Text>
+          </View>
+        }
+      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <View style={styles.headerTitle}>
-            <Text style={styles.headerTitleText}>🤖 Pak AI — Guru Virtual</Text>
-            <View style={styles.statusRow}>
-              <OnlineIndicator />
-              <Text style={styles.statusText}>Online • Mode Offline Aktif</Text>
-            </View>
-          </View>
-        </View>
 
         {/* Language Switch */}
         <View style={styles.langRow}>
@@ -180,39 +230,93 @@ export default function TutorScreen() {
             contentContainerStyle={styles.quickScroll}
           >
             {suggestions.map((q, i) => (
-              <TouchableOpacity
+              <Pressable
                 key={i}
-                style={styles.quickButton}
-                onPress={() => sendMessage(q)}
-                activeOpacity={0.8}
+                style={({ pressed }) => [
+                  styles.quickButton,
+                  pressed && { opacity: 0.7 }
+                ]}
+                onPress={() => handleSend(q)}
               >
                 <Text style={styles.quickButtonText}>{q}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </ScrollView>
         </View>
 
         {/* Input Area */}
         <View style={styles.inputArea}>
+          <TouchableOpacity 
+            style={[styles.micButton, isListening && styles.micButtonActive]} 
+            onPress={toggleListening}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.micEmoji}>{isListening ? '🛑' : '🎤'}</Text>
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
+            placeholder={!aiReady ? "Pak AI sedang bersiap..." : (isListening ? "Mendengarkan..." : "Tanya sesuatu...")}
+            placeholderTextColor={Colors.textHint}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ketik pertanyaanmu..."
-            placeholderTextColor="rgba(255,255,255,0.3)"
             multiline
-            maxLength={500}
+            editable={aiReady}
           />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={() => sendMessage(inputText || USER_QUESTION)}
-            activeOpacity={0.85}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.sendButton, 
+              (!inputText.trim() || isTyping || !aiReady) && styles.sendButtonDisabled,
+              pressed && { opacity: 0.8 }
+            ]} 
+            onPress={() => {
+              handleSend(inputText);
+            }}
+            disabled={!inputText.trim() || isTyping || !aiReady}
           >
-            <Text style={styles.sendIcon}>➤</Text>
-          </TouchableOpacity>
+            <Text style={styles.sendIcon}>→</Text>
+          </Pressable>
         </View>
+
+        {/* AI Loading Overlay */}
+        {!aiReady && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingBox}>
+              <Text style={styles.loadingEmoji}>{error ? '⚠️' : '🤖'}</Text>
+              <Text style={styles.loadingTitle}>
+                {error ? 'Waduh, Ada Kendala!' : 'Pak AI sedang bersiap...'}
+              </Text>
+              
+              {!error ? (
+                <>
+                  <View style={styles.loadingBarContainer}>
+                    <View style={[styles.loadingBar, { width: `${initProgress}%` }]} />
+                  </View>
+                  <Text style={styles.loadingProgress}>{initProgress}%</Text>
+                  <Text style={styles.loadingSub}>Sedang mengunduh otak Pak AI (Phi-2)</Text>
+                </>
+              ) : (
+                <Text style={styles.errorText}>{error}</Text>
+              )}
+
+              <TouchableOpacity 
+                style={[styles.skipButton, error && styles.skipButtonError]} 
+                onPress={() => setAiReady(true)}
+              >
+                <Text style={styles.skipButtonText}>
+                  {error ? 'Gunakan Mode Hemat (Offline)' : 'Lewati & Gunakan Mode Hemat'}
+                </Text>
+              </TouchableOpacity>
+              
+              {!error && (
+                <Text style={styles.loadingHint}>
+                  Ini hanya dilakukan sekali. Butuh koneksi internet & WebGPU.
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -221,40 +325,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
   },
-  header: {
+  langRow: {
+    paddingTop: 110, // Space for GlassHeader
     flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.07)',
-    gap: 12,
+    paddingVertical: 10,
+    gap: 8,
   },
-  backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-  },
-  headerTitle: {
-    flex: 1,
-    gap: 3,
-  },
-  headerTitleText: {
-    color: Colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  statusRow: {
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   onlineDot: {
     width: 6,
@@ -265,12 +346,6 @@ const styles = StyleSheet.create({
   statusText: {
     color: Colors.primary,
     fontSize: 11,
-  },
-  langRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
   },
   langButton: {
     flex: 1,
@@ -330,36 +405,145 @@ const styles = StyleSheet.create({
   },
   inputArea: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    padding: 12,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    backgroundColor: Colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 8,
+    zIndex: 100,
+  },
+  micButton: { // Added micButton style
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
+  },
+  micButtonActive: { // Added micButtonActive style
+    backgroundColor: 'rgba(255,77,77,0.15)',
+    borderColor: '#ff4d4d',
+  },
+  micEmoji: { // Added micEmoji style
+    fontSize: 20,
+  },
+  input: { // Updated input style
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 100,
+    backgroundColor: Colors.bgCard, // Changed from Colors.bgCard2
+    borderRadius: 22,
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 20,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255,255,255,0.07)',
-    gap: 10,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: Colors.bgCard2,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingBottom: 10,
     color: Colors.textPrimary,
-    fontSize: 13,
-    maxHeight: 80,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: Colors.border, // Changed from Colors.borderLight
   },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  sendButton: { // Updated sendButton style
+    width: 44, // Changed from 40
+    height: 44, // Changed from 40
+    borderRadius: 22, // Changed from 12
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Platform.select({
+      web: { cursor: 'pointer' }
+    }),
+  },
+  sendButtonDisabled: { // Added sendButtonDisabled style
+    opacity: 0.5,
   },
   sendIcon: {
     color: '#fff',
     fontSize: 16,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(11, 17, 32, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    zIndex: 1000,
+  },
+  loadingBox: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingEmoji: {
+    fontSize: 64,
+  },
+  loadingTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  loadingBarContainer: {
+    width: '100%',
+    height: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  loadingBar: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+  },
+  loadingProgress: {
+    color: Colors.primary,
+    fontWeight: '800',
+    fontSize: 24,
+  },
+  loadingSub: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255,77,77,0.1)',
+    padding: 12,
+    borderRadius: 12,
+  },
+  skipButton: {
+    marginTop: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  skipButtonError: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  skipButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  loadingHint: {
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 11,
+    marginTop: 8,
+    textAlign: 'center',
+  }
 });

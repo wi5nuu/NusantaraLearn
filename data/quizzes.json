@@ -1,0 +1,36 @@
+{
+  "quizzes": [
+    {
+      "id": "1",
+      "lesson_id": "1",
+      "title": "Kuis Perkalian Dasar",
+      "isTimeTrial": true,
+      "timeLimit": 30,
+      "questions": [
+        { "id": 1, "question": "Jika kamu memiliki 3 keranjang dan setiap keranjang berisi 5 buah sawit, berapa total buah sawitmu?", "options": ["8 buah", "15 buah", "10 buah", "25 buah"], "correctIndex": 1 },
+        { "id": 2, "question": "Perkalian adalah penjumlahan berulang dari angka yang sama. Benar atau salah?", "options": ["Benar", "Salah"], "correctIndex": 0 }
+      ]
+    },
+    {
+      "id": "v1",
+      "lesson_id": "v1",
+      "title": "Kuis Tata Surya",
+      "isTimeTrial": false,
+      "questions": [
+        { "id": 1, "question": "Planet apa yang paling dekat dengan Matahari?", "options": ["Venus", "Bumi", "Merkurius", "Mars"], "correctIndex": 2 },
+        { "id": 2, "question": "Berapa jumlah planet utama dalam Tata Surya kita?", "options": ["7", "8", "9", "10"], "correctIndex": 1 }
+      ]
+    },
+    {
+      "id": "v2",
+      "lesson_id": "v2",
+      "title": "Kuis Sayur Sehat",
+      "isTimeTrial": true,
+      "timeLimit": 20,
+      "questions": [
+        { "id": 1, "question": "Vitamin apa yang dominan terdapat pada Wortel?", "options": ["Vitamin C", "Vitamin D", "Vitamin A", "Vitamin K"], "correctIndex": 2 },
+        { "id": 2, "question": "Mengapa sayuran hijau baik untuk tubuh?", "options": ["Banyak gula", "Kaya serat & vitamin", "Banyak lemak", "Sangat asin"], "correctIndex": 1 }
+      ]
+    }
+  ]
+}

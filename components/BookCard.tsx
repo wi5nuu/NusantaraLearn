@@ -1,32 +1,46 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { Link } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { Book } from '../constants/subjects';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import { MotiView } from 'moti';
 
 interface Props {
   book: Book;
   index: number;
   onPress?: () => void;
+  href?: string;
 }
 
-export const BookCard = ({ book, index, onPress }: Props) => {
-  return (
-    <Animated.View entering={FadeInRight.duration(500).delay(index * 100)}>
-      <TouchableOpacity 
-        style={styles.card} 
-        activeOpacity={0.8}
-        onPress={onPress}
-      >
-        <View style={[styles.cover, { backgroundColor: book.coverColor }]}>
-          <Text style={styles.coverEmoji}>{book.emoji}</Text>
-          <View style={styles.spineEffect} />
-        </View>
-        <Text style={styles.title} numberOfLines={2}>{book.title}</Text>
-        <Text style={styles.author} numberOfLines={1}>{book.author}</Text>
-      </TouchableOpacity>
-    </Animated.View>
+export const BookCard = ({ book, index, onPress, href }: Props) => {
+  const CardContent = (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <View style={[styles.cover, { backgroundColor: book.coverColor }]}>
+        <Text style={styles.coverEmoji}>{book.emoji}</Text>
+      </View>
+      <Text style={styles.title} numberOfLines={1}>
+        {book.title}
+      </Text>
+      <Text style={styles.author}>{book.author}</Text>
+    </TouchableOpacity>
   );
+
+  const WrappedContent = (
+    <MotiView
+      from={{ opacity: 0, translateX: 50 }}
+      animate={{ opacity: 1, translateX: 0 }}
+      transition={{ type: 'spring', damping: 20, delay: index * 100 }}
+      style={styles.card}
+    >
+      {href ? (
+        <Link href={href as any} asChild>
+          {CardContent}
+        </Link>
+      ) : CardContent}
+    </MotiView>
+  );
+
+  return WrappedContent;
 };
 
 const styles = StyleSheet.create({
@@ -43,11 +57,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+      web: {
+        boxShadow: '4px 4px 8px rgba(0,0,0,0.3)',
+      }
+    }),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },

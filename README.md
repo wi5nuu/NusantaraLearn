@@ -1,71 +1,76 @@
-# 🤖 NusantaraLearn - Guru Virtual Pintar & Offline-First
+# 🤖 NusantaraLearn - Guru Virtual Pintar & Offline-First (World Class Edition)
 
-[![Version](https://img.shields.io/badge/version-1.0.0-teal.svg)](https://github.com/wisnualfian/NusantaraLearn)
+[![Version](https://img.shields.io/badge/version-1.2.0-teal.svg)](https://github.com/wi5nuu/NusantaraLearn)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Web-blue.svg)](https://expo.dev/)
-[![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](./LICENSE)
+[![AI Engine](https://img.shields.io/badge/AI-MLC--LLM%20Phi--2-orange.svg)](https://mlc.ai/)
+[![Design](https://img.shields.io/badge/Design-Glass--Pop%20Modern-eb4034.svg)](https://github.com/wi5nuu/NusantaraLearn)
 
-**NusantaraLearn** adalah aplikasi edukasi interaktif masa depan yang dirancang khusus untuk anak-anak Indonesia. Dengan misi menghapus kesenjangan pendidikan, aplikasi ini memadukan teknologi AI mutakhir dengan keanekaragaman budaya nusantara dalam satu platform yang bisa diakses sepenuhnya tanpa internet (**Offline-First**).
-
-Dikembangkan oleh **Wisnu Alfian** dari **President University**.
-
----
-
-## ✨ Fitur Utama (Highlight)
-
--   **🤖 Pak AI — Guru Virtual Pintar**: Chatbot edukasi yang mendukung 4 bahasa (Indonesia, Jawa, Sunda, Bugis). Kini dilengkapi dengan *Smart Suggestions* untuk memicu rasa ingin tahu anak.
--   **📺 In-App Video Learning**: Menonton video pembelajaran edukatif langsung di dalam aplikasi tanpa gangguan iklan luar, lengkap dengan materi rangkuman.
--   **📑 Interactive Quizzes**: Uji pemahaman materi dengan sistem kuis yang memberikan feedback instan dan sistem scoring XP.
--   **📖 Pojok Cerita & Dongeng**: Perpustakaan digital yang berisi cerita rakyat nusantara.
--   **📥 Offline Download Manager**: Unduh materi pembelajaran dan worksheet PDF untuk dipelajari kapan saja tanpa koneksi internet.
--   **📈 Gamification Profile**: Pantau progres mingguan, kumpulkan badge prestasi, dan tingkatkan level pelajar.
--   **🎨 Dynamic Design UI**: Antarmuka modern dengan transisi halus, mode gelap yang elegan, dan hero carousel yang berganti otomatis.
-
-## 🚀 Teknologi yang Digunakan
-
-| Komponen | Teknologi |
-| :--- | :--- |
-| **Framework** | [React Native](https://reactnative.dev/) & [Expo](https://expo.dev/) |
-| **Pemandu Rute** | Expo Router (File-based Routing) |
-| **Animasi** | [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) |
-| **State Manager** | [Zustand](https://github.com/pmndrs/zustand) |
-| **Typography** | Google Fonts (Plus Jakarta Sans & Sora) |
-
-## 🛠️ Persiapan Instalasi
-
-Pastikan Anda sudah menginstal **Node.js** dan **Expo CLI**.
-
-1. Clone repositori ini:
-   ```bash
-   git clone https://github.com/username/NusantaraLearn.git
-   ```
-2. Pilih direktori proyek:
-   ```bash
-   cd NusantaraLearn
-   ```
-3. Instal dependensi:
-   ```bash
-   npm install
-   ```
-4. Jalankan aplikasi:
-   ```bash
-   npm run dev
-   ```
-
-## 📄 Lisensi & Hak Cipta
-
-Copyright © 2026 **Wisnu Alfian**. Seluruh Hak Cipta Dilindungi.
-
-Kode ini dirilis di bawah **NusantaraLearn Public Source License**. Anda diizinkan untuk melihat dan memodifikasi kode untuk tujuan edukasi pribadi, namun **dilarang keras** untuk mendistribusikan ulang atau menggunakan kode ini untuk tujuan komersial tanpa izin tertulis dari pemilik sah.
-
-Silakan baca [LICENSE](./LICENSE) untuk detail hukum lebih lanjut.
+**NusantaraLearn** adalah platform edukasi revolusioner yang menghadirkan masa depan pendidikan ke genggaman anak-anak Indonesia. Dengan estetika **"Glass-Pop"** yang mewah dan teknologi **On-Device AI**, aplikasi ini bekerja **100% Offline** untuk memastikan akses pendidikan berkualitas tanpa batas sinyal.
 
 ---
 
-## 📩 Kontak & Kolaborasi
+## 🌟 Mengapa NusantaraLearn Berbeda?
 
-Punya saran atau ingin bekerja sama mengembangkan NusantaraLearn? Hubungi saya di:
+Aplikasi ini dibangun untuk mengatasi tantangan nyata pendidikan di seluruh nusantara: biaya internet yang mahal dan akses yang tidak merata.
 
--   **Email**: [wisnualfian117@gmail.com](mailto:wisnualfian117@gmail.com)
--   **Kampus**: President University
+### 🧠 On-Device AI (Real Intelligence)
+NusantaraLearn menggunakan **MLC-WebLLM** untuk menjalankan model **Microsoft Phi-2** langsung di HP pengguna:
+- **Zero Cost**: Tidak menggunakan API berbayar.
+- **Privacy First**: Semua percakapan diproses secara lokal.
+- **Offline Capable**: Pak AI tetap aktif mengajar meski tanpa sinyal.
 
-*"Untuk Generasi Emas Indonesia 🇮🇩"*
+### 📶 Arsitektur Offline-First
+Seluruh kurikulum, kuis interaktif, dan perpustakaan cerita rakyat disimpan secara lokal. Hemat kuota dan stabil di mana saja.
+
+---
+
+## 🚀 Fitur Unggulan
+
+- **🤖 Pak AI Tutor**: Guru virtual sabar dengan konteks budaya lokal Indonesia.
+- **🏆 Digital Certificate System**: Sertifikat resmi standar **A4 Landscape** untuk setiap materi.
+- **📥 One-Click Export**: Simpan sertifikat ke perangkat dalam format PDF/Image high-fidelity.
+- **📝 Kuis Interaktif**: Mengasah pemahaman dengan sistem gamifikasi XP dan Level.
+- **👨‍🏫 Mode Guru / Orang Tua**: Dashboard terproteksi PIN untuk memantau perkembangan belajar.
+- **💎 Glass-Pop UX**: Estetika Glassmorphism dengan animasi **Moti** yang sangat halus.
+
+---
+
+## 🏆 Sistem Sertifikasi Professional
+
+Sertifikat NusantaraLearn dirancang dengan standar eksekutif:
+- **International Typography**: Menggunakan font premium Sora & Plus Jakarta Sans.
+- **High Fidelity Assets**: Logo resolusi tinggi dan elemen dekoratif emas yang elegan.
+- **Official Standards**: Teroptimasi untuk ukuran kertas **A4 (297mm x 210mm)** secara otomatis.
+- **One-Click Export**: Simpan dan lihat koleksi sertifikat kapan saja langsung dari menu profil dalam format PDF/Image.
+
+---
+
+---
+
+## 🏗️ Teknis & Pengembangan
+
+Aplikasi ini dibangun menggunakan teknologi terbaru untuk performa maksimal:
+- **React Native & Expo SDK 55**
+- **Expo Router** (File-based Routing)
+- **Zustand** (Ultra-light State Management)
+- **MLC-WebLLM** (Mobile AI Engine)
+- **Moti & Reanimated 3** (Fluid Animations)
+- **Expo Blur** (Glassmorphism Core)
+
+---
+
+## 🌍 Visi Sosial
+NusantaraLearn dikembangkan dengan visi **"Zero Cost Education for Everyone"**. Kami percaya bahwa akses ke kecerdasan buatan haruslah gratis, merata, dan mewah untuk seluruh anak Indonesia.
+
+---
+
+## 👨‍💼 Founder & Developer
+Dikembangkan dengan visi mencerdaskan bangsa oleh:
+**Wisnu Alfian Nur Ashar**  
+*Founder & CEO of NusantaraLearn*
+
+- **LinkedIn**: [Wisnu Alfian Nur Ashar](https://www.linkedin.com/in/wi5nuu/)
+- **Email**: [wisnualfian117@gmail.com](mailto:wisnualfian117@gmail.com)
+- **GitHub**: [@wi5nuu](https://github.com/wi5nuu)
+
+*"Mencerdaskan Kehidupan Bangsa, Tanpa Batas Sinyal."* 🇮🇩

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   StyleSheet,
   Platform,
   Linking,
+  Image,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -21,15 +24,53 @@ import { BookCard } from '../../components/BookCard';
 import { VideoCard } from '../../components/VideoCard';
 import { SUBJECTS, LESSON_CARDS, BOOKS, VIDEOS, LessonCard as LessonCardType } from '../../constants/subjects';
 import { useNotifications } from '../../stores/useNotifications';
+import { useNotifications as useNotifStore } from '../../stores/useNotifications';
+import { useUser } from '../../stores/useUser';
+import { useStreak } from '../../stores/useStreak';
+import { XPProgress } from '../../components/XPProgress';
 import { NotificationModal } from '../../components/NotificationModal';
+import { GlassHeader } from '../../components/GlassHeader';
+import storiesData from '../../data/stories.json';
+import Animated, { useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const CLUB_TIPS = [
+  { id: '1', name: 'Siti', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Siti', tip: 'Coba tanya AI Tutor kalau bingung Matematika!', emoji: '💡' },
+  { id: '2', name: 'Budi', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Budi', tip: 'Dengarkan materi sebelum kuis ya biar nilai 100.', emoji: '🎧' },
+  { id: '3', name: 'Rani', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rani', tip: 'Jangan lupa cek peringkatmu setiap hari!', emoji: '🏆' },
+];
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showNotif, setShowNotif] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [greeting, setGreeting] = useState('');
   
   const { notifications, enabled: notifEnabled } = useNotifications();
+  const { name, xp, streak, loadProfile } = useUser();
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    loadProfile();
+    updateGreeting();
+  }, []);
+
+  const updateGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 11) setGreeting('Selamat Pagi');
+    else if (hour < 15) setGreeting('Selamat Siang');
+    else if (hour < 18) setGreeting('Selamat Sore');
+    else setGreeting('Selamat Malam');
+  };
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: withRepeat(withSequence(withTiming(1.2, { duration: 1000 }), withTiming(1, { duration: 1000 })), -1, true) }
+    ],
+    opacity: withRepeat(withSequence(withTiming(1, { duration: 1000 }), withTiming(0.7, { duration: 1000 })), -1, true)
+  }));
 
   const filteredLessons = LESSON_CARDS.filter((lesson) => {
     const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -38,52 +79,67 @@ export default function HomeScreen() {
     return matchesSearch && matchesCategory;
   });
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
+      <GlassHeader 
+        title={`${greeting}, ${name || 'Teman'} 👋`}
+        rightElement={
+          <View style={styles.headerRight}>
+            <View style={styles.streakBadge}>
+              <Animated.Text style={[styles.streakEmoji, pulseStyle]}>🔥</Animated.Text>
+              <Text style={styles.streakText}>{streak}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.bellButton}
+              onPress={() => setShowNotif(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.bellEmoji}>🔔</Text>
+              {notifEnabled && unreadCount > 0 && (
+                <View style={styles.badge} />
+              )}
+            </TouchableOpacity>
+          </View>
+        }
+      />
+      
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {/* Header Row */}
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>A</Text>
-            </View>
-            <View>
-              <Text style={styles.greeting}>Selamat pagi,</Text>
-              <Text style={styles.username}>Wisnu 👋</Text>
-            </View>
-          </View>
-          <TouchableOpacity 
-            style={styles.bellButton}
-            onPress={() => setShowNotif(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.bellEmoji}>🔔</Text>
-            {notifEnabled && unreadCount > 0 && (
-              <View style={styles.badge} />
-            )}
-          </TouchableOpacity>
-        </View>
+        <XPProgress xp={xp} levelThreshold={1000} />
 
         <NotificationModal 
           visible={showNotif} 
           onClose={() => setShowNotif(false)} 
         />
 
-        {Platform.OS === 'web' && (
-          <TouchableOpacity 
-            style={styles.downloadApkBtn}
-            activeOpacity={0.8}
-            onPress={() => Linking.openURL('/assets/NusantaraLearn.apk')}
-          >
-            <Text style={styles.downloadApkText}>📲 Unduh APK Android</Text>
-          </TouchableOpacity>
-        )}
-
         <View style={styles.searchWrap}>
           <SearchBar onSearch={setSearchQuery} />
+        </View>
+
+        {/* Stories Section */}
+        <View style={styles.storiesContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.storiesScroll}
+          >
+            {storiesData.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.storyWrap}
+                onPress={() => setSelectedStory(item)}
+              >
+                <View style={[styles.storyCircle, { borderColor: item.color }]}>
+                  <View style={[styles.storyContent, { backgroundColor: item.color + '20' }]}>
+                    <Text style={styles.storyEmoji}>{item.emoji}</Text>
+                  </View>
+                </View>
+                <Text style={styles.storyTitle} numberOfLines={1}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* Hero Card */}
@@ -91,6 +147,31 @@ export default function HomeScreen() {
 
         {/* Daily Quest */}
         <DailyQuest />
+
+        {/* Student Club Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Klub Pelajar 💬</Text>
+          <TouchableOpacity activeOpacity={0.6}>
+            <Text style={styles.seeAll}>Lihat Semua</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.clubScroll}
+        >
+          {CLUB_TIPS.map((item) => (
+            <TouchableOpacity key={item.id} style={styles.clubCard} activeOpacity={0.8}>
+              <View style={styles.clubHeader}>
+                <Image source={{ uri: item.avatar }} style={styles.clubAvatar} />
+                <Text style={styles.clubName}>{item.name}</Text>
+              </View>
+              <Text style={styles.clubTip} numberOfLines={2}>
+                <Text style={{ fontSize: 16 }}>{item.emoji}</Text> {item.tip}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* Subject Chips */}
         <View style={styles.sectionHeader}>
@@ -123,13 +204,17 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.bookScrollContent}
         >
-          {VIDEOS.map((video, index) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              index={index}
-            />
-          ))}
+          {VIDEOS && VIDEOS.length > 0 ? (
+            VIDEOS.map((video, index) => (
+              <VideoCard
+                key={video.id}
+                video={video}
+                index={index}
+              />
+            ))
+          ) : (
+             <Text style={{ color: Colors.textMuted, marginLeft: 20 }}>Video belum tersedia</Text>
+          )}
         </ScrollView>
 
         {/* Lesson Cards */}
@@ -142,6 +227,7 @@ export default function HomeScreen() {
               <LessonCard
                 key={lesson.id}
                 lesson={lesson}
+                href={`/lesson/${lesson.id}`}
                 onPress={() => router.push(`/lesson/${lesson.id}`)}
               />
             ))
@@ -173,12 +259,46 @@ export default function HomeScreen() {
               key={book.id}
               book={book}
               index={index}
+              href={`/story/${book.id}`}
               onPress={() => router.push(`/story/${book.id}`)}
             />
           ))}
         </ScrollView>
+
+        {/* Story Modal */}
+        <Modal
+          visible={!!selectedStory}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSelectedStory(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity 
+              style={styles.modalCloseArea} 
+              onPress={() => setSelectedStory(null)} 
+            />
+            <View style={[styles.storyCardModal, { borderTopColor: selectedStory?.color || Colors.primary }]}>
+              <View style={styles.storyModalHeader}>
+                <Text style={styles.storyModalLabel}>{selectedStory?.title}</Text>
+                <TouchableOpacity onPress={() => setSelectedStory(null)}>
+                  <Text style={styles.closeBtn}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.storyModalBody}>
+                <Text style={styles.storyModalEmoji}>{selectedStory?.emoji}</Text>
+                <Text style={styles.storyModalText}>{selectedStory?.content}</Text>
+              </View>
+              <TouchableOpacity 
+                style={[styles.storyGotIt, { backgroundColor: selectedStory?.color || Colors.primary }]}
+                onPress={() => setSelectedStory(null)}
+              >
+                <Text style={styles.storyGotItText}>Keren! 🙌</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -191,27 +311,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: 32,
+    paddingTop: 120, // Space for GlassHeader
+    paddingBottom: 100, // Account for absolute tab bar
     gap: 16,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
-  searchWrap: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  headerLeft: {
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
-  avatar: {
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,165,0,0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,165,0,0.3)',
+    gap: 4,
+  },
+  streakEmoji: {
+    fontSize: 14,
+  },
+  streakText: {
+    color: '#FFA500',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  avatarWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -257,22 +385,153 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.bg,
   },
-  downloadApkBtn: {
-    marginHorizontal: 20,
-    marginTop: 10,
-    backgroundColor: 'rgba(29,158,117,0.1)',
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    paddingVertical: 12,
-    borderRadius: 16,
+  storiesContainer: {
+    marginBottom: 8,
+  },
+  storiesScroll: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  storyWrap: {
     alignItems: 'center',
+    gap: 6,
+    width: 70,
+  },
+  storyCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    padding: 3,
     borderStyle: 'dashed',
   },
-  downloadApkText: {
-    color: Colors.primary,
-    fontSize: 13,
+  storyContent: {
+    flex: 1,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storyEmoji: {
+    fontSize: 24,
+  },
+  storyTitle: {
+    color: Colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCloseArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  storyCardModal: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: Colors.bgCard,
+    borderRadius: 24,
+    padding: 24,
+    borderTopWidth: 6,
+    gap: 20,
+  },
+  storyModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  storyModalLabel: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  closeBtn: {
+    color: Colors.textMuted,
+    fontSize: 20,
+  },
+  storyModalBody: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  storyModalEmoji: {
+    fontSize: 64,
+  },
+  storyModalText: {
+    color: Colors.textPrimary,
+    fontSize: 18,
+    textAlign: 'center',
+    lineHeight: 28,
+    fontWeight: '600',
+    fontFamily: 'Sora_600SemiBold',
+  },
+  storyGotIt: {
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  storyGotItText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  clubScroll: {
+    paddingLeft: 20,
+    paddingRight: 8,
+    paddingBottom: 24,
+    marginTop: 12,
+  },
+  clubCard: {
+    width: 180,
+    backgroundColor: Colors.bgMid,
+    padding: 14,
+    borderRadius: 18,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+      }
+    }),
+  },
+  clubHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  clubAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  clubName: {
+    color: Colors.textMuted,
+    fontSize: 12,
     fontWeight: '700',
     fontFamily: 'Sora_700Bold',
+  },
+  clubTip: {
+    color: Colors.textPrimary,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
   },
   sectionHeader: {
     paddingHorizontal: 20,
@@ -288,6 +547,10 @@ const styles = StyleSheet.create({
   chipScrollContent: {
     paddingHorizontal: 20,
     gap: 8,
+  },
+  searchWrap: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   lessonList: {
     paddingHorizontal: 20,
@@ -322,5 +585,6 @@ const styles = StyleSheet.create({
   bookScrollContent: {
     paddingHorizontal: 20,
     paddingTop: 10,
+    minHeight: 180,
   }
 });

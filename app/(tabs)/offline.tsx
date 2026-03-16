@@ -11,28 +11,19 @@ import { router } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DownloadCard } from '../../components/DownloadCard';
 import { useDownload } from '../../stores/useDownload';
+import { GlassHeader } from '../../components/GlassHeader';
 
 export default function OfflineScreen() {
   const { packages } = useDownload();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
+      <GlassHeader title="Unduh Paket Ilmu 📥" onBack={() => router.back()} />
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>📥 Unduh Paket Ilmu</Text>
-        </View>
 
         {/* Offline Hero Banner */}
         <View style={styles.banner}>
@@ -58,7 +49,7 @@ export default function OfflineScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -71,6 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    paddingTop: 110, // Space for GlassHeader
     paddingBottom: 32,
     gap: 16,
   },

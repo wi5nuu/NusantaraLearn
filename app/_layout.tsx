@@ -4,8 +4,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, PlusJakartaSans_400Regular, PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans';
 import { Sora_400Regular, Sora_700Bold } from '@expo-google-fonts/sora';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { Colors } from '../constants/colors';
+
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -16,7 +20,13 @@ export default function RootLayout() {
     Sora_700Bold,
   });
 
-  if (!fontsLoaded) {
+  React.useEffect(() => {
+    if (fontsLoaded || Platform.OS === 'web') {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded && Platform.OS !== 'web') {
     return (
       <View style={styles.loading}>
         <ActivityIndicator color={Colors.primary} />

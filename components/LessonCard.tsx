@@ -5,40 +5,63 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { MotiView } from 'moti';
+import { Link } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { LessonCard as LessonCardType } from '../constants/subjects';
 
 interface Props {
   lesson: LessonCardType;
   onPress?: () => void;
+  href?: string;
 }
 
-export const LessonCard = ({ lesson, onPress }: Props) => {
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <View style={[styles.thumb, { backgroundColor: lesson.bgColor }]}>
-        <Text style={styles.emoji}>{lesson.emoji}</Text>
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>
-          {lesson.title}
-        </Text>
-        <Text style={styles.meta}>{lesson.meta}</Text>
-        <View style={styles.badges}>
-          {lesson.isFree && (
-            <View style={styles.badgeGreen}>
-              <Text style={styles.badgeGreenText}>Gratis</Text>
-            </View>
-          )}
-          {lesson.isOffline && (
-            <View style={styles.badgeBlue}>
-              <Text style={styles.badgeBlueText}>Offline</Text>
-            </View>
-          )}
+export const LessonCard = ({ lesson, onPress, href }: Props) => {
+  const CardContent = (
+    <MotiView
+      from={{ opacity: 0, translateY: 15 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'spring', damping: 15 }}
+    >
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={onPress} 
+        activeOpacity={0.8}
+      >
+        <View style={[styles.thumb, { backgroundColor: lesson.bgColor }]}>
+          <Text style={styles.emoji}>{lesson.emoji}</Text>
         </View>
-      </View>
-    </TouchableOpacity>
+        <View style={styles.info}>
+          <Text style={styles.title} numberOfLines={2}>
+            {lesson.title}
+          </Text>
+          <Text style={styles.meta}>{lesson.meta}</Text>
+          <View style={styles.badges}>
+            {lesson.isFree && (
+              <View style={styles.badgeGreen}>
+                <Text style={styles.badgeGreenText}>Gratis</Text>
+              </View>
+            )}
+            {lesson.isOffline && (
+              <View style={styles.badgeBlue}>
+                <Text style={styles.badgeBlueText}>Offline</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    </MotiView>
   );
+
+  if (href) {
+    return (
+      <Link href={href as any} asChild>
+        {CardContent}
+      </Link>
+    );
+  }
+
+  return CardContent;
 };
 
 const styles = StyleSheet.create({

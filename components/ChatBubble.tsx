@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Colors } from '../constants/colors';
 import { Message } from '../stores/useChat';
@@ -10,6 +9,53 @@ interface Props {
 
 export const ChatBubble = ({ message }: Props) => {
   const isAI = message.role === 'ai';
+
+  const speak = (text: string) => {
+    if (Platform.OS === 'web' && 'speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'id-ID'; // Set lang to Indonesian
+      utterance.rate = 0.9; // Slightly slower for better clarity
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.container, isAI ? styles.aiRow : styles.userRow]}>
+        {isAI && (
+          <View style={styles.aiAvatar}>
+            <Text style={styles.avatarText}>AI</Text>
+          </View>
+        )}
+        <View
+          style={[
+            styles.bubble,
+            isAI ? styles.aiBubble : styles.userBubble,
+          ]}
+        >
+          <Text style={[styles.text, isAI ? styles.aiText : styles.userText]}>
+            {message.text}
+          </Text>
+          {isAI && (
+            <TouchableOpacity 
+              onPress={() => speak(message.text)}
+              style={styles.speakerBtn}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.speakerEmoji}>🔊</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {!isAI && (
+          <View style={styles.userAvatar}>
+            <Text style={styles.avatarText}>A</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
 
   return (
     <Animated.View
@@ -30,6 +76,15 @@ export const ChatBubble = ({ message }: Props) => {
         <Text style={[styles.text, isAI ? styles.aiText : styles.userText]}>
           {message.text}
         </Text>
+        {isAI && (
+          <TouchableOpacity 
+            onPress={() => speak(message.text)}
+            style={styles.speakerBtn}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.speakerEmoji}>🔊</Text>
+          </TouchableOpacity>
+        )}
       </View>
       {!isAI && (
         <View style={styles.userAvatar}>
@@ -101,4 +156,14 @@ const styles = StyleSheet.create({
   userText: {
     color: '#fff',
   },
+  speakerBtn: {
+    padding: 6,
+    alignSelf: 'flex-end',
+    marginTop: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 8,
+  },
+  speakerEmoji: {
+    fontSize: 14,
+  }
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
@@ -21,17 +21,27 @@ export const AchievementBadges = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {BADGES.map((badge, i) => (
-          <Animated.View 
-            key={badge.id} 
-            entering={FadeInRight.duration(500).delay(i * 100)}
-            style={styles.badgeCard}
-          >
-            <View style={styles.emojiBox}>
-              <Text style={styles.emoji}>{badge.emoji}</Text>
+          Platform.OS === 'web' ? (
+            <View key={badge.id} style={styles.badgeCard}>
+              <View style={styles.emojiBox}>
+                <Text style={styles.emoji}>{badge.emoji}</Text>
+              </View>
+              <Text style={styles.label}>{badge.label}</Text>
+              <Text style={styles.desc} numberOfLines={2}>{badge.desc}</Text>
             </View>
-            <Text style={styles.label}>{badge.label}</Text>
-            <Text style={styles.desc} numberOfLines={2}>{badge.desc}</Text>
-          </Animated.View>
+          ) : (
+            <Animated.View 
+              key={badge.id} 
+              entering={FadeInRight.duration(500).delay(i * 100)}
+              style={styles.badgeCard}
+            >
+              <View style={styles.emojiBox}>
+                <Text style={styles.emoji}>{badge.emoji}</Text>
+              </View>
+              <Text style={styles.label}>{badge.label}</Text>
+              <Text style={styles.desc} numberOfLines={2}>{badge.desc}</Text>
+            </Animated.View>
+          )
         ))}
       </ScrollView>
     </View>

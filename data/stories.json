@@ -1,0 +1,37 @@
+[
+  {
+    "id": "s1",
+    "title": "Fakta Kilat",
+    "content": "Tahukah kamu? Gajah adalah satu-satunya hewan yang tidak bisa melompat!",
+    "emoji": "🐘",
+    "color": "#FF6B6B"
+  },
+  {
+    "id": "s2",
+    "title": "Luar Angkasa",
+    "content": "Satu hari di Venus lebih lama dari satu tahun di Bumi!",
+    "emoji": "🚀",
+    "color": "#4D96FF"
+  },
+  {
+    "id": "s3",
+    "title": "Bahasa",
+    "content": "Kata 'Bebek' dalam bahasa Jawa adalah 'Bebek', tapi dalam krama inggil disebut 'Kambangan'.",
+    "emoji": "🦆",
+    "color": "#6BCB77"
+  },
+  {
+    "id": "s4",
+    "title": "Laut Kita",
+    "content": "70% oksigen yang kita hirup berasal dari laut, lewat plankton kecil!",
+    "emoji": "🌊",
+    "color": "#FFD93D"
+  },
+  {
+    "id": "s5",
+    "title": "Cari Tahu",
+    "content": "Madu adalah satu-satunya makanan yang tidak akan pernah basi.",
+    "emoji": "🍯",
+    "color": "#FF9F45"
+  }
+]

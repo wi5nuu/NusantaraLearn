@@ -1,0 +1,244 @@
+{
+  "lessons": [
+    {
+      "id": "tk_huruf_1",
+      "title": "Mengenal Huruf Vokal",
+      "subject": "bahasa",
+      "kelas": 0,
+      "duration_minutes": 10,
+      "xp_reward": 30,
+      "content": [
+        { "type": "explain", "text": "A, I, U, E, O adalah huruf vokal." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "tk_angka_1",
+      "title": "Belajar Berhitung 1-10",
+      "subject": "matematika",
+      "kelas": 0,
+      "duration_minutes": 10,
+      "xp_reward": 30,
+      "content": [
+        { "type": "explain", "text": "Mari menghitung jari tangan kita!" }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd1_tambah_1",
+      "title": "Penjumlahan Buah-buahan",
+      "subject": "matematika",
+      "kelas": 1,
+      "duration_minutes": 15,
+      "xp_reward": 40,
+      "content": [
+        { "type": "explain", "text": "1 apel ditambah 1 apel jadi 2 apel." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd1_tubuh_1",
+      "title": "Mengenal Anggota Tubuh",
+      "subject": "ipa",
+      "kelas": 1,
+      "duration_minutes": 15,
+      "xp_reward": 40,
+      "content": [
+        { "type": "explain", "text": "Mata untuk melihat, telinga untuk mendengar." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd2_perkalian_1",
+      "title": "Konsep Perkalian Dasar",
+      "subject": "matematika",
+      "kelas": 2,
+      "duration_minutes": 20,
+      "xp_reward": 50,
+      "content": [
+        { "type": "explain", "text": "Perkalian adalah penjumlahan yang berulang." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd2_hewan_1",
+      "title": "Tempat Hidup Hewan",
+      "subject": "ipa",
+      "kelas": 2,
+      "duration_minutes": 15,
+      "xp_reward": 45,
+      "content": [
+        { "type": "explain", "text": "Ada hewan yang hidup di darat dan di air." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd3_pecahan_1",
+      "title": "Mengenal Pecahan Sederhana",
+      "subject": "matematika",
+      "kelas": 3,
+      "duration_minutes": 20,
+      "xp_reward": 55,
+      "content": [
+        { "type": "explain", "text": "Satu pizza dipotong dua menjadi setengah." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd3_cuaca_1",
+      "title": "Keadaan Cuaca",
+      "subject": "ipa",
+      "kelas": 3,
+      "duration_minutes": 20,
+      "xp_reward": 50,
+      "content": [
+        { "type": "explain", "text": "Cuaca bisa cerah, berawan, atau hujan." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd4_pahlawan_1",
+      "title": "Pahlawan Nasional Indonesia",
+      "subject": "ips",
+      "kelas": 4,
+      "duration_minutes": 25,
+      "xp_reward": 60,
+      "content": [
+        { "type": "explain", "text": "Mengenal jasa para pahlawan kemerdekaan." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "math_kelas4_bab1",
+      "title": "Perkalian Sawit",
+      "subject": "matematika",
+      "kelas": 4,
+      "duration_minutes": 20,
+      "xp_reward": 50,
+      "content": [
+        { "type": "explain", "text": "Menghitung hasil kebun dengan perkalian." }
+      ],
+      "available_langs": ["ind", "jav", "sun", "bug"]
+    },
+    {
+      "id": "sd5_tatasurya_1",
+      "title": "Sistem Tata Surya",
+      "subject": "ipa",
+      "kelas": 5,
+      "duration_minutes": 30,
+      "xp_reward": 70,
+      "content": [
+        { "type": "explain", "text": "Matahari adalah pusat tata surya kita." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd5_kerajaan_1",
+      "title": "Kerajaan Hindu-Buddha",
+      "subject": "ips",
+      "kelas": 5,
+      "duration_minutes": 25,
+      "xp_reward": 65,
+      "content": [
+        { "type": "explain", "text": "Sejarah kerajaan Majapahit dan Sriwijaya." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd6_proklamasi_1",
+      "title": "Detik-detik Proklamasi",
+      "subject": "ips",
+      "kelas": 6,
+      "duration_minutes": 30,
+      "xp_reward": 80,
+      "content": [
+        { "type": "explain", "text": "Peristiwa penting 17 Agustus 1945." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd6_listrik_1",
+      "title": "Rangkaian Listrik",
+      "subject": "ipa",
+      "kelas": 6,
+      "duration_minutes": 25,
+      "xp_reward": 75,
+      "content": [
+        { "type": "explain", "text": "Mengenal rangkaian seri dan paralel." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd1_baca_1",
+      "title": "Lancar Membaca",
+      "subject": "bahasa",
+      "kelas": 1,
+      "duration_minutes": 15,
+      "xp_reward": 35,
+      "content": [
+        { "type": "explain", "text": "Budi suka baca buku cerita." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd2_puisi_1",
+      "title": "Membaca Puisi",
+      "subject": "bahasa",
+      "kelas": 2,
+      "duration_minutes": 15,
+      "xp_reward": 40,
+      "content": [
+        { "type": "explain", "text": "Cara membaca puisi dengan ekspresi." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd4_sda_1",
+      "title": "Sumber Daya Alam",
+      "subject": "ipa",
+      "kelas": 4,
+      "duration_minutes": 20,
+      "xp_reward": 50,
+      "content": [
+        { "type": "explain", "text": "Manfaat kekayaan alam Indonesia." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "tk_warna_1",
+      "title": "Mengenal Warna Pelangi",
+      "subject": "ipa",
+      "kelas": 0,
+      "duration_minutes": 10,
+      "xp_reward": 25,
+      "content": [
+        { "type": "explain", "text": "Merah, Kuning, Hijau, di langit yang biru." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd3_lingkungan_1",
+      "title": "Menjaga Kebersihan",
+      "subject": "ips",
+      "kelas": 3,
+      "duration_minutes": 15,
+      "xp_reward": 45,
+      "content": [
+        { "type": "explain", "text": "Membuang sampah pada tempatnya." }
+      ],
+      "available_langs": ["ind"]
+    },
+    {
+      "id": "sd6_ekonomi_1",
+      "title": "Kegiatan Ekonomi",
+      "subject": "ips",
+      "kelas": 6,
+      "duration_minutes": 25,
+      "xp_reward": 70,
+      "content": [
+        { "type": "explain", "text": "Produksi, distribusi, dan konsumsi." }
+      ],
+      "available_langs": ["ind"]
+    }
+  ]
+}

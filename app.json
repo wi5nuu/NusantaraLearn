@@ -8,7 +8,7 @@
     "userInterfaceStyle": "dark",
     "scheme": "nusantaralearn",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0B1120"
     },
@@ -24,6 +24,17 @@
     "plugins": [
       "expo-router",
       "expo-font"
-    ]
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png",
+      "description": "NusantaraLearn: Platform Belajar Interaktif Anak Indonesia",
+      "themeColor": "#0B1120",
+      "backgroundColor": "#0B1120",
+      "display": "standalone",
+      "lang": "id",
+      "shortName": "NusantaraLearn"
+    }
   }
 }
